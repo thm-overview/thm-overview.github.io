@@ -1,0 +1,93 @@
+<style>
+    <!-- You can style contributions calendar using CSS variables   -->
+    :root {
+        --contributions-calendar-day-tile-default-background: #ebedf0;
+        --contributions-calendar-day-tile-margin: 1px;
+        --contributions-calendar-day-tile-height: 1rem;
+        --contributions-calendar-day-tile-width: 1rem;
+    }
+
+    contributions-calendar#calendar {
+        --contributions-calendar-day-tile-one-quarter-background: #c6e48b;
+        --contributions-calendar-day-tile-two-quarters-background: #7bc96f;
+        --contributions-calendar-day-tile-three-quarters-background: #239a3b;
+        --contributions-calendar-day-tile-four-quarters-background: #239a8c;
+    }
+
+    contributions-calendar#anotherCalendar {
+        --contributions-calendar-day-tile-one-quarter-background: red;
+        --contributions-calendar-day-tile-two-quarters-background: black;
+        --contributions-calendar-day-tile-three-quarters-background: brown;
+        --contributions-calendar-day-tile-four-quarters-background: yellow;
+    }
+</style>
+
+<h1>Contributions Calendar</h1>
+
+<p>Look at the source code of this page on how to use it</p>
+
+
+<h2>Default Calendar</h2>
+
+<contributions-calendar id="calendar"></contributions-calendar>
+
+<h2>Custom Styled Calendar</h2>
+
+<contributions-calendar id="anotherCalendar"></contributions-calendar>
+
+<script defer src="contributions-calendar.js"></script>
+
+<script>
+    document.addEventListener("contributions-calendar-day-selected", day_selected_listener);
+    function day_selected_listener(event) {
+        console.log('contributions-calendar-day-selected event for calendar #' + event.target.id);
+
+        const date_contributions = event.detail;
+
+        var date = new Date(parseInt(date_contributions.date))
+        const contributions = date_contributions.contributions;
+
+        const statement = `${contributions} contribution(s) on ${date}`;
+        console.log(statement);
+    }
+
+    document.addEventListener("contributions-calendar-ready", contributions_calendar_ready);
+    function contributions_calendar_ready(event) {
+        console.log('contributions-calendar-ready event for calendar #' + event.target.id);
+
+        // contribution calendar instance passed as an event detail once DOM is ready
+        const contributions_calendar = event.detail;
+
+
+        // to use calendar you need contributions (array of UTC timestamps), start date (UTC timestamp)
+        // and number of weeks to show
+
+        let startDate = '2019-01-06T00:00:00.000Z';
+        let numberOfWeeks = 52;
+
+
+        // for simplicity we'll get contributions via HTTP request
+
+      var opts = {
+ 	   headers: { 
+		'Access-Control-Allow-Origin': '*'
+		}
+	}  
+
+	var url = 'https://tryhackme.com/api/user/activity-events?username=c0mp'
+
+	fetch(url, opts)
+            .then(response => response.json())
+            .then(contributions => {
+                contributions_calendar.init(contributions, startDate, numberOfWeeks);
+
+                // // or alternatively do initialization via
+                // contributions_calendar.setContributions(contributions);
+                // contributions_calendar.setStartDate(startDate);
+                // contributions_calendar.setNumberOfWeeks(numberOfWeeks);
+                // contributions_calendar.draw();
+            });
+
+    }
+
+</script>
