@@ -1,65 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instant Download PoC (Single File)</title>
+    <title>Sofort-Download PoC (Single-File)</title>
     <style>
         body { font-family: sans-serif; padding: 40px; text-align: center; }
-        button { padding: 12px 24px; font-size: 16px; cursor: pointer; border-radius: 6px; }
-        #status { margin-top: 15px; color: #555; }
+        button { padding: 12px 24px; font-size: 16px; cursor: pointer; border-radius: 6px; background-color: #007bff; color: white; border: none; }
+        button:hover { background-color: #0056b3; }
     </style>
 </head>
 <body>
 
-    <h1>Instant Download PoC</h1>
-    <p>No &lt;a&gt; tags, no "Save As" dialogs.</p>
-    <button onclick="triggerDownload()">Download instant.txt</button>
-    <div id="status">Initializing...</div>
+    <h1>Sofort-Download PoC</h1>
+    <p>Komplett in dieser HTML-Datei enthalten. Ohne &lt;a&gt;-Tags und ohne "Speichern unter"-Dialog.</p>
+    
+    <button onclick="triggerInstantDownload()">Download instant.txt</button>
 
     <script>
-        const statusDiv = document.getElementById('status');
+        function triggerInstantDownload() {
+            const textContent = "Hello World";
+            const fileName = "instant.txt";
 
-        const workerCode = `
-            self.addEventListener('fetch', (event) => {
-                if (event.request.url.includes('/download-instant-txt')) {
-                    const stream = new ReadableStream({
-                        start(controller) {
-                            const encoder = new TextEncoder();
-                            controller.enqueue(encoder.encode("Hello World"));
-                            controller.close();
-                        }
-                    });
+            const blob = new Blob([textContent], { type: "application/octet-stream" });
+            const blobUrl = URL.createObjectURL(blob);
 
-                    event.respondWith(new Response(stream, {
-                        headers: {
-                            'Content-Type': 'application/octet-stream',
-                            'Content-Disposition': 'attachment; filename="instant.txt"'
-                        }
-                    }));
-                }
-            });
-        `;
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            
+            document.body.appendChild(iframe);
 
-        if ('serviceWorker' in navigator) {
-            const blob = new Blob([workerCode], { type: 'application/javascript' });
-            const workerUrl = URL.createObjectURL(blob);
+            const iframeDoc = iframe.contentWindow.document;
+            iframeDoc.open();
+            iframeDoc.write(`
+                <meta http-equiv="refresh" content="0;url=${blobUrl}">
+            `);
+            iframeDoc.close();
 
-            navigator.serviceWorker.register(workerUrl)
-                .then(reg => {
-                    statusDiv.innerText = "Service Worker successfully registered.";
-                    console.log('SW registered:', reg);
-                })
-                .catch(err => {
-                    statusDiv.innerText = "Registration failed: Must run on localhost or HTTPS.";
-                    console.error('SW registration failed:', err);
-                });
-        } else {
-            statusDiv.innerText = "Service Workers are not supported in this browser.";
-        }
-
-        function triggerDownload() {
-            window.location.href = '/download-instant-txt';
+            setTimeout(() => {
+                try {
+                    iframe.contentWindow.location.href = blobUrl;
+                } catch(e) {}
+                
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                    URL.revokeObjectURL(blobUrl);
+                }, 500);
+            }, 50);
         }
     </script>
 </body>
