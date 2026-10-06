@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instant Download PoC</title>
+    <title>Sofort-Download PoC</title>
     <style>
         body { font-family: sans-serif; padding: 40px; text-align: center; }
         button { padding: 12px 24px; font-size: 16px; cursor: pointer; border-radius: 6px; background-color: #28a745; color: white; border: none; }
@@ -13,29 +13,29 @@
 <body>
 
     <h1>Sofort-Download PoC</h1>
-    <p>Vollständig kompatibel mit HTTPS im Internet. Ohne Blockaden, ohne &lt;a&gt;-Tags.</p>
+    <p>Funktioniert im Internet via HTTPS. Ohne &lt;a&gt;-Tags, ohne "Speichern unter", garantiert als instant.txt.</p>
     
     <button onclick="triggerDownload()">Download instant.txt</button>
 
     <script>
-        async function triggerDownload() {
+        function triggerDownload() {
             const textContent = "Hello World";
             const fileName = "instant.txt";
 
-            const file = new File([textContent], fileName, { type: "text/plain" });
+            const blob = new Blob([textContent], { type: "application/octet-stream" });
+            const blobUrl = URL.createObjectURL(blob);
 
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        files: [file],
-                        title: fileName
-                    });
-                } catch (err) {
-                    console.error("Download abgebrochen:", err);
-                }
-            } else {
-                alert("Der Browser blockiert alle direkten Speicher-APIs ohne sichtbare HTML-Links.");
-            }
+            const area = document.createElement('area');
+            area.href = blobUrl;
+            area.download = fileName;
+
+            document.body.appendChild(area);
+            area.click();
+            document.body.removeChild(area);
+
+            setTimeout(() => {
+                URL.revokeObjectURL(blobUrl);
+            }, 100);
         }
     </script>
 </body>
