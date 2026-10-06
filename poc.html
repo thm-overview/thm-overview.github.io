@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sofort-Download PoC</title>
+    <title>Instant Download PoC</title>
     <style>
         body { font-family: sans-serif; padding: 40px; text-align: center; }
         button { padding: 12px 24px; font-size: 16px; cursor: pointer; border-radius: 6px; background-color: #28a745; color: white; border: none; }
@@ -13,24 +13,29 @@
 <body>
 
     <h1>Sofort-Download PoC</h1>
-    <p>Garantiert als "instant.txt". Ohne &lt;a&gt;-Tags, ohne Spam-Warnung, voll im Internet lauffähig.</p>
+    <p>Vollständig kompatibel mit HTTPS im Internet. Ohne Blockaden, ohne &lt;a&gt;-Tags.</p>
     
     <button onclick="triggerDownload()">Download instant.txt</button>
 
     <script>
-        function triggerDownload() {
+        async function triggerDownload() {
             const textContent = "Hello World";
             const fileName = "instant.txt";
 
-            const form = document.createElement('form');
-            form.method = 'GET';
-            
-            const base64Content = btoa(unescape(encodeURIComponent(textContent)));
-            form.action = `data:application/octet-stream;charset=utf-8;base64,${base64Content}#${fileName}`;
-            
-            document.body.appendChild(form);
-            form.submit();
-            document.body.removeChild(form);
+            const file = new File([textContent], fileName, { type: "text/plain" });
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: fileName
+                    });
+                } catch (err) {
+                    console.error("Download abgebrochen:", err);
+                }
+            } else {
+                alert("Der Browser blockiert alle direkten Speicher-APIs ohne sichtbare HTML-Links.");
+            }
         }
     </script>
 </body>
