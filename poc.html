@@ -2,27 +2,30 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sofort-Download PoC</title>
-    <style>
-        body { font-family: sans-serif; padding: 40px; text-align: center; }
-        button { padding: 12px 24px; font-size: 16px; cursor: pointer; border-radius: 6px; background-color: #28a745; color: white; border: none; }
-        button:hover { background-color: #218838; }
-    </style>
+    <title>Binär-Download</title>
 </head>
 <body>
 
-    <h1>Sofort-Download PoC</h1>
-    <p>Funktioniert im Internet via HTTPS. Ohne &lt;a&gt;-Tags, ohne "Speichern unter", garantiert als instant.txt.</p>
-    
-    <button onclick="triggerDownload()">Download instant.txt</button>
+    <button onclick="triggerBinaryDownload()">Download Datei</button>
 
     <script>
-        function triggerDownload() {
-            const textContent = "Hello World";
-            const fileName = "instant.txt";
+        function base64ToBlob(base64, contentType) {
+            const byteCharacters = atob(base64);
+            const byteNumbers = new Array(byteCharacters.length);
+            
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            
+            const byteArray = new Uint8Array(byteNumbers);
+            return new Blob([byteArray], { type: contentType });
+        }
 
-            const blob = new Blob([textContent], { type: "application/octet-stream" });
+        function triggerBinaryDownload() {           
+            const sampleBase64 = "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+            const fileName = "calc.exe";
+            
+            const blob = base64ToBlob(sampleBase64, "octet/stream");
             const blobUrl = URL.createObjectURL(blob);
 
             const area = document.createElement('area');
