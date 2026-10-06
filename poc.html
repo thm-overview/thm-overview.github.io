@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instant Download PoC (Single File)</title>
+    <style>
+        body { font-family: sans-serif; padding: 40px; text-align: center; }
+        button { padding: 12px 24px; font-size: 16px; cursor: pointer; border-radius: 6px; }
+        #status { margin-top: 15px; color: #555; }
+    </style>
+</head>
+<body>
+
+    <h1>Instant Download PoC</h1>
+    <p>No &lt;a&gt; tags, no "Save As" dialogs.</p>
+    <button onclick="triggerDownload()">Download instant.txt</button>
+    <div id="status">Initializing...</div>
+
+    <script>
+        const statusDiv = document.getElementById('status');
+
+        const workerCode = `
+            self.addEventListener('fetch', (event) => {
+                if (event.request.url.includes('/download-instant-txt')) {
+                    const stream = new ReadableStream({
+                        start(controller) {
+                            const encoder = new TextEncoder();
+                            controller.enqueue(encoder.encode("Hello World"));
+                            controller.close();
+                        }
+                    });
+
+                    event.respondWith(new Response(stream, {
+                        headers: {
+                            'Content-Type': 'application/octet-stream',
+                            'Content-Disposition': 'attachment; filename="instant.txt"'
+                        }
+                    }));
+                }
+            });
+        `;
+
+        if ('serviceWorker' in navigator) {
+            const blob = new Blob([workerCode], { type: 'application/javascript' });
+            const workerUrl = URL.createObjectURL(blob);
+
+            navigator.serviceWorker.register(workerUrl)
+                .then(reg => {
+                    statusDiv.innerText = "Service Worker successfully registered.";
+                    console.log('SW registered:', reg);
+                })
+                .catch(err => {
+                    statusDiv.innerText = "Registration failed: Must run on localhost or HTTPS.";
+                    console.error('SW registration failed:', err);
+                });
+        } else {
+            statusDiv.innerText = "Service Workers are not supported in this browser.";
+        }
+
+        function triggerDownload() {
+            window.location.href = '/download-instant-txt';
+        }
+    </script>
+</body>
+</html>
