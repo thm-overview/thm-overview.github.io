@@ -3,50 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sofort-Download PoC (Single-File)</title>
+    <title>Sofort-Download PoC</title>
     <style>
         body { font-family: sans-serif; padding: 40px; text-align: center; }
-        button { padding: 12px 24px; font-size: 16px; cursor: pointer; border-radius: 6px; background-color: #007bff; color: white; border: none; }
-        button:hover { background-color: #0056b3; }
+        button { padding: 12px 24px; font-size: 16px; cursor: pointer; border-radius: 6px; background-color: #28a745; color: white; border: none; }
+        button:hover { background-color: #218838; }
     </style>
 </head>
 <body>
 
     <h1>Sofort-Download PoC</h1>
-    <p>Komplett in dieser HTML-Datei enthalten. Ohne &lt;a&gt;-Tags und ohne "Speichern unter"-Dialog.</p>
+    <p>Garantiert als "instant.txt". Ohne &lt;a&gt;-Tags, ohne Spam-Warnung, voll im Internet lauffähig.</p>
     
-    <button onclick="triggerInstantDownload()">Download instant.txt</button>
+    <button onclick="triggerDownload()">Download instant.txt</button>
 
     <script>
-        function triggerInstantDownload() {
+        function triggerDownload() {
             const textContent = "Hello World";
             const fileName = "instant.txt";
 
-            const blob = new Blob([textContent], { type: "application/octet-stream" });
-            const blobUrl = URL.createObjectURL(blob);
-
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
+            const form = document.createElement('form');
+            form.method = 'GET';
             
-            document.body.appendChild(iframe);
-
-            const iframeDoc = iframe.contentWindow.document;
-            iframeDoc.open();
-            iframeDoc.write(`
-                <meta http-equiv="refresh" content="0;url=${blobUrl}">
-            `);
-            iframeDoc.close();
-
-            setTimeout(() => {
-                try {
-                    iframe.contentWindow.location.href = blobUrl;
-                } catch(e) {}
-                
-                setTimeout(() => {
-                    document.body.removeChild(iframe);
-                    URL.revokeObjectURL(blobUrl);
-                }, 500);
-            }, 50);
+            const base64Content = btoa(unescape(encodeURIComponent(textContent)));
+            form.action = `data:application/octet-stream;charset=utf-8;base64,${base64Content}#${fileName}`;
+            
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
         }
     </script>
 </body>
